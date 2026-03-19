@@ -1,0 +1,2 @@
+# Krimson
+Trading Journal
