@@ -1,0 +1,136 @@
+@import "tailwindcss";
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+
+@custom-variant dark (&:is(.dark *));
+@custom-variant light (&:is(.light *));
+
+@layer base {
+    body {
+        font-family: 'Inter', sans-serif; /* <-- This applies the font everywhere */
+        @apply bg-background text-foreground antialiased;
+    }
+}
+
+:root {
+    /* Typography */
+    --font-size: 16px;
+    --text-2xl: 1.5rem;
+    --text-xl: 1.25rem;
+    --text-lg: 1.125rem;
+    --text-base: 1rem;
+
+    /* Core Theme Colors - Dark Theme Default */
+    --background: #0A0A0A;
+    --foreground: #FFFFFF;
+    --card: #141414;
+    --card-foreground: #FFFFFF;
+    --popover: #141414;
+    --popover-foreground: #FFFFFF;
+
+    /* Brand Colors */
+    --primary: #00D1FF;
+    --primary-foreground: #0A0A0A;
+    --secondary: #141414;
+    --secondary-foreground: #FFFFFF;
+    --muted: #1A1A1A;
+    --muted-foreground: #A0A0A0;
+    --accent: #C5A059;
+    --accent-foreground: #0A0A0A;
+
+    /* UI Element Colors */
+    --destructive: #FF3D3D;
+    --destructive-foreground: #FFFFFF;
+    --success: #00FF85;
+    --success-foreground: #0A0A0A;
+    --border: rgba(255, 255, 255, 0.1);
+    --input: rgba(255, 255, 255, 0.05);
+    --ring: #00D1FF;
+    --radius: 0.5rem;
+}
+
+/* Light Theme */
+.light {
+    --background: #FFFFFF;
+    --foreground: #000000;
+    --card: #F5F5F5;
+    --card-foreground: #000000;
+    --popover: #F5F5F5;
+    --popover-foreground: #000000;
+    --primary: #0099CC;
+    --primary-foreground: #FFFFFF;
+    --secondary: #E8E8E8;
+    --secondary-foreground: #000000;
+    --muted: #E5E5E5;
+    --muted-foreground: #666666;
+    --accent: #CC8833;
+    --accent-foreground: #FFFFFF;
+    --destructive: #CC3333;
+    --destructive-foreground: #FFFFFF;
+    --success: #00AA00;
+    --success-foreground: #FFFFFF;
+    --border: rgba(0, 0, 0, 0.1);
+    --input: rgba(0, 0, 0, 0.05);
+    --ring: #0099CC;
+}
+
+/* Dark Theme Explicit */
+.dark {
+    --background: #0A0A0A;
+    --foreground: #FFFFFF;
+    --card: #141414;
+    --card-foreground: #FFFFFF;
+    --popover: #141414;
+    --popover-foreground: #FFFFFF;
+    --primary: #00D1FF;
+    --primary-foreground: #0A0A0A;
+    --secondary: #141414;
+    --secondary-foreground: #FFFFFF;
+    --muted: #1A1A1A;
+    --muted-foreground: #A0A0A0;
+    --accent: #C5A059;
+    --accent-foreground: #0A0A0A;
+    --destructive: #FF3D3D;
+    --destructive-foreground: #FFFFFF;
+    --success: #00FF85;
+    --success-foreground: #0A0A0A;
+    --border: rgba(255, 255, 255, 0.1);
+    --input: rgba(255, 255, 255, 0.05);
+    --ring: #00D1FF;
+}
+
+/* Map CSS variables to Tailwind v4 Theme */
+@theme inline {
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+    --color-card: var(--card);
+    --color-card-foreground: var(--card-foreground);
+    --color-popover: var(--popover);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-primary: var(--primary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-secondary: var(--secondary);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-muted: var(--muted);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-accent: var(--accent);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-destructive: var(--destructive);
+    --color-destructive-foreground: var(--destructive-foreground);
+    --color-border: var(--border);
+    --color-input: var(--input);
+    --color-ring: var(--ring);
+    --radius-sm: calc(var(--radius) - 4px);
+    --radius-md: calc(var(--radius) - 2px);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) + 4px);
+}
+
+@layer base {
+    * {
+        @apply border-border outline-ring/50;
+    }
+    body {
+        @apply bg-background text-foreground antialiased;
+    }
+}
