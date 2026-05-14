@@ -31,7 +31,7 @@ export function LoginPage() {
                         <Label>Password</Label>
                         <Input type="password" value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} required className="text-white"/>
                     </div>
-                    <button type="submit" className="w-full h-11 bg-[#00D1FF] text-black rounded-lg mt-6">Sign In</button>
+                    <button type="submit" className="w-full h-11 bg-[#DC2626] text-white rounded-lg mt-6">Sign In</button>
                 </form>
             </div>
         </div>

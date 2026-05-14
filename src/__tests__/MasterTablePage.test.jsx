@@ -15,6 +15,18 @@ const renderWithProviders = (ui) => {
     );
 };
 
+beforeEach(() => {
+    window.localStorage.clear();
+    if (typeof window.navigator !== 'undefined') {
+        Object.defineProperty(window.navigator, 'onLine', { value: false, configurable: true });
+    }
+    window.fetch = vi.fn(() => Promise.reject(new Error('Network unavailable')));
+});
+
+afterEach(() => {
+    vi.restoreAllMocks();
+});
+
 describe('MasterTablePage CRUD Operations', () => {
     it('renders initial trades from RAM state', () => {
         renderWithProviders(<MasterTablePage />);
@@ -66,8 +78,8 @@ describe('MasterTablePage CRUD Operations', () => {
         const editButtons = screen.getAllByTitle('Edit');
         fireEvent.click(editButtons[0]);
         
-        // Change asset
-        const assetInput = screen.getByDisplayValue('BTC/USDT');
+        // Wait for the edit dialog and change asset by placeholder
+        const assetInput = await screen.findByPlaceholderText('e.g., BTC/USDT');
         fireEvent.change(assetInput, { target: { value: 'BTC/USDT-EDITED' } });
         
         // Submit
@@ -86,7 +98,8 @@ describe('MasterTablePage CRUD Operations', () => {
         expect(screen.getByText('BTC/USDT')).toBeInTheDocument();
         
         // Mock window.confirm
-        global.confirm = vi.fn(() => true);
+        window.confirm = vi.fn(() => true);
+        global.confirm = window.confirm;
         
         // Click delete
         const deleteButtons = screen.getAllByTitle('Delete');

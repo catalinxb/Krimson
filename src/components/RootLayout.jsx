@@ -19,11 +19,11 @@ function SystemMonitor() {
     };
 
     return (
-        <div className="fixed bottom-4 right-4 z-50 flex items-center gap-4 bg-[#141414]/90 backdrop-blur-md border border-white/10 px-4 py-2 rounded-full shadow-[0_0_20px_rgba(0,0,0,0.5)]">
+        <div className="fixed bottom-4 right-4 z-50 flex items-center gap-4 bg-card/90 backdrop-blur-md border border-border px-4 py-2 rounded-full shadow-[0_0_20px_rgba(0,0,0,0.12)]">
 
             {/* Preference Tracker (Cookie Driven) */}
             <div className="flex items-center gap-2">
-                <User className="w-3.5 h-3.5 text-[#C5A059]" />
+                <User className="w-3.5 h-3.5 text-accent" />
                 {isEditing ? (
                     <input
                         type="text"
@@ -32,13 +32,13 @@ function SystemMonitor() {
                         onKeyDown={handleSaveAlias}
                         onBlur={() => setIsEditing(false)}
                         autoFocus
-                        className="bg-transparent border-b border-[#C5A059] text-xs text-white outline-none w-20 font-mono"
+                        className="bg-transparent border-b border-accent text-xs text-foreground outline-none w-20 font-mono"
                         placeholder="Alias..."
                     />
                 ) : (
                     <span
                         onClick={() => setIsEditing(true)}
-                        className="text-xs text-[#C5A059] font-mono cursor-pointer hover:text-white transition-colors"
+                        className="text-xs text-accent font-mono cursor-pointer hover:text-foreground transition-colors"
                         title="Click to edit alias (Saved to cookies)"
                     >
             {userAlias}

@@ -15,8 +15,8 @@ export default function App() {
   return (
       <AnimatePresence mode="wait">
         <Routes location={location} key={location.pathname}>
-          <Route path="/" element={<PageTransition><AuthPage /></PageTransition>} />
-          <Route path="/landing" element={<PageTransition><LandingPage /></PageTransition>} />
+          <Route path="/" element={<PageTransition><LandingPage /></PageTransition>} />
+          <Route path="/login" element={<PageTransition><AuthPage /></PageTransition>} />
           <Route element={<RootLayout />}>
             <Route path="/terminal" element={<PageTransition><MasterTablePage /></PageTransition>} />
             <Route path="/trade/:id" element={<PageTransition><DetailedViewPage /></PageTransition>} />

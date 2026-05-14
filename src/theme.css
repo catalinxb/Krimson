@@ -9,8 +9,8 @@
     --card-foreground: #FFFFFF;
     --popover: #141414;
     --popover-foreground: #FFFFFF;
-    --primary: #00D1FF;
-    --primary-foreground: #0A0A0A;
+    --primary: #DC2626;
+    --primary-foreground: #FFFFFF;
     --secondary: #141414;
     --secondary-foreground: #FFFFFF;
     --muted: #1A1A1A;
@@ -27,8 +27,8 @@
     --switch-background: #2A2A2A;
     --font-weight-medium: 500;
     --font-weight-normal: 400;
-    --ring: #00D1FF;
-    --chart-1: #00D1FF;
+    --ring: #DC2626;
+    --chart-1: #DC2626;
     --chart-2: #C5A059;
     --chart-3: #00FF85;
     --chart-4: #FF3D3D;
@@ -36,12 +36,12 @@
     --radius: 0.5rem;
     --sidebar: #0A0A0A;
     --sidebar-foreground: #FFFFFF;
-    --sidebar-primary: #00D1FF;
-    --sidebar-primary-foreground: #0A0A0A;
+    --sidebar-primary: #DC2626;
+    --sidebar-primary-foreground: #FFFFFF;
     --sidebar-accent: #141414;
     --sidebar-accent-foreground: #FFFFFF;
     --sidebar-border: rgba(255, 255, 255, 0.1);
-    --sidebar-ring: #00D1FF;
+    --sidebar-ring: #DC2626;
     --text-2xl: 1.5rem;
     --text-xl: 1.25rem;
     --text-lg: 1.125rem;
@@ -57,7 +57,7 @@
     --card-foreground: #000000;
     --popover: #F5F5F5;
     --popover-foreground: #000000;
-    --primary: #0099CC;
+    --primary: #B91C1C;
     --primary-foreground: #FFFFFF;
     --secondary: #E8E8E8;
     --secondary-foreground: #000000;
@@ -73,20 +73,20 @@
     --input: rgba(0, 0, 0, 0.05);
     --input-background: rgba(0, 0, 0, 0.05);
     --switch-background: #D5D5D5;
-    --ring: #0099CC;
-    --chart-1: #0099CC;
+    --ring: #B91C1C;
+    --chart-1: #B91C1C;
     --chart-2: #CC8833;
     --chart-3: #00AA00;
     --chart-4: #CC3333;
     --chart-5: #9966CC;
     --sidebar: #FFFFFF;
     --sidebar-foreground: #000000;
-    --sidebar-primary: #0099CC;
+    --sidebar-primary: #B91C1C;
     --sidebar-primary-foreground: #FFFFFF;
     --sidebar-accent: #E8E8E8;
     --sidebar-accent-foreground: #000000;
     --sidebar-border: rgba(0, 0, 0, 0.1);
-    --sidebar-ring: #0099CC;
+    --sidebar-ring: #B91C1C;
 }
 
 .light {
@@ -96,7 +96,7 @@
     --card-foreground: #000000;
     --popover: #F5F5F5;
     --popover-foreground: #000000;
-    --primary: #0099CC;
+    --primary: #B91C1C;
     --primary-foreground: #FFFFFF;
     --secondary: #E8E8E8;
     --secondary-foreground: #000000;
@@ -114,20 +114,20 @@
     --switch-background: #D5D5D5;
     --font-weight-medium: 500;
     --font-weight-normal: 400;
-    --ring: #0099CC;
-    --chart-1: #0099CC;
+    --ring: #B91C1C;
+    --chart-1: #B91C1C;
     --chart-2: #CC8833;
     --chart-3: #00AA00;
     --chart-4: #CC3333;
     --chart-5: #9966CC;
     --sidebar: #FFFFFF;
     --sidebar-foreground: #000000;
-    --sidebar-primary: #0099CC;
+    --sidebar-primary: #B91C1C;
     --sidebar-primary-foreground: #FFFFFF;
     --sidebar-accent: #E8E8E8;
     --sidebar-accent-foreground: #000000;
     --sidebar-border: rgba(0, 0, 0, 0.1);
-    --sidebar-ring: #0099CC;
+    --sidebar-ring: #B91C1C;
 }
 
 .dark {
@@ -137,8 +137,8 @@
     --card-foreground: #FFFFFF;
     --popover: #141414;
     --popover-foreground: #FFFFFF;
-    --primary: #00D1FF;
-    --primary-foreground: #0A0A0A;
+    --primary: #DC2626;
+    --primary-foreground: #FFFFFF;
     --secondary: #141414;
     --secondary-foreground: #FFFFFF;
     --muted: #1A1A1A;
@@ -149,22 +149,22 @@
     --destructive-foreground: #FFFFFF;
     --border: rgba(255, 255, 255, 0.1);
     --input: rgba(255, 255, 255, 0.05);
-    --ring: #00D1FF;
+    --ring: #DC2626;
     --font-weight-medium: 500;
     --font-weight-normal: 400;
-    --chart-1: #00D1FF;
+    --chart-1: #DC2626;
     --chart-2: #C5A059;
     --chart-3: #00FF85;
     --chart-4: #FF3D3D;
     --chart-5: #8B5CF6;
     --sidebar: #0A0A0A;
     --sidebar-foreground: #FFFFFF;
-    --sidebar-primary: #00D1FF;
-    --sidebar-primary-foreground: #0A0A0A;
+    --sidebar-primary: #DC2626;
+    --sidebar-primary-foreground: #FFFFFF;
     --sidebar-accent: #141414;
     --sidebar-accent-foreground: #FFFFFF;
     --sidebar-border: rgba(255, 255, 255, 0.1);
-    --sidebar-ring: #00D1FF;
+    --sidebar-ring: #DC2626;
 }
 
 @theme inline {

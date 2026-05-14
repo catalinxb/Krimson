@@ -29,8 +29,8 @@
     --popover-foreground: #FFFFFF;
 
     /* Brand Colors */
-    --primary: #00D1FF;
-    --primary-foreground: #0A0A0A;
+    --primary: #DC2626;
+    --primary-foreground: #FFFFFF;
     --secondary: #141414;
     --secondary-foreground: #FFFFFF;
     --muted: #1A1A1A;
@@ -45,7 +45,7 @@
     --success-foreground: #0A0A0A;
     --border: rgba(255, 255, 255, 0.1);
     --input: rgba(255, 255, 255, 0.05);
-    --ring: #00D1FF;
+    --ring: #DC2626;
     --radius: 0.5rem;
 }
 
@@ -57,7 +57,7 @@
     --card-foreground: #000000;
     --popover: #F5F5F5;
     --popover-foreground: #000000;
-    --primary: #0099CC;
+    --primary: #B91C1C;
     --primary-foreground: #FFFFFF;
     --secondary: #E8E8E8;
     --secondary-foreground: #000000;
@@ -71,7 +71,7 @@
     --success-foreground: #FFFFFF;
     --border: rgba(0, 0, 0, 0.1);
     --input: rgba(0, 0, 0, 0.05);
-    --ring: #0099CC;
+    --ring: #B91C1C;
 }
 
 /* Dark Theme Explicit */
@@ -82,8 +82,8 @@
     --card-foreground: #FFFFFF;
     --popover: #141414;
     --popover-foreground: #FFFFFF;
-    --primary: #00D1FF;
-    --primary-foreground: #0A0A0A;
+    --primary: #DC2626;
+    --primary-foreground: #FFFFFF;
     --secondary: #141414;
     --secondary-foreground: #FFFFFF;
     --muted: #1A1A1A;
@@ -96,7 +96,7 @@
     --success-foreground: #0A0A0A;
     --border: rgba(255, 255, 255, 0.1);
     --input: rgba(255, 255, 255, 0.05);
-    --ring: #00D1FF;
+    --ring: #DC2626;
 }
 
 /* Map CSS variables to Tailwind v4 Theme */

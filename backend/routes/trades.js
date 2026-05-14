@@ -93,12 +93,154 @@ function createTrade(value, existingDuration = null) {
   };
 }
 
+function updateTrade(id, value) {
+  const tradeIndex = trades.findIndex(t => t.id === id);
+  if (tradeIndex === -1) {
+    throw new Error('Trade not found');
+  }
+
+  const { error, value: validated } = tradeSchema.validate(value);
+  if (error) {
+    throw error;
+  }
+
+  const pnl = calculatePnL(validated.entry, validated.exit, validated.direction);
+  const pnlPercent = calculatePnLPercent(pnl, validated.entry);
+  const duration = trades[tradeIndex].duration || calculateDuration(validated.startDate, validated.endDate);
+
+  const updatedTrade = {
+    id,
+    ...validated,
+    pnl,
+    pnlPercent,
+    duration,
+    pips: validated.pips != null ? validated.pips : Math.round(pnl)
+  };
+
+  trades[tradeIndex] = updatedTrade;
+  return updatedTrade;
+}
+
+function deleteTrade(id) {
+  const tradeIndex = trades.findIndex(t => t.id === id);
+  if (tradeIndex === -1) {
+    throw new Error('Trade not found');
+  }
+
+  trades.splice(tradeIndex, 1);
+  return true;
+}
+
 function resetTrades() {
   trades = [...initialTrades];
 }
 
+const initialNotes = [
+  {
+    id: 1,
+    tradeId: 1,
+    content: 'Market momentum call was confirmed by both RSI and volume.',
+    createdAt: '2026-03-16T15:00:00.000Z',
+    updatedAt: '2026-03-16T15:00:00.000Z'
+  }
+];
+
+let notes = [...initialNotes];
+
 function getAllTrades() {
   return trades;
+}
+
+function getNotesByTrade(tradeId) {
+  return notes.filter((note) => note.tradeId === tradeId);
+}
+
+function getTradeById(id) {
+  const trade = trades.find((t) => t.id === id);
+  if (!trade) return null;
+  return {
+    ...trade,
+    notes: getNotesByTrade(id),
+    noteCount: getNotesByTrade(id).length
+  };
+}
+
+function getTradesPage({ page = 1, limit = 10, status, direction, asset }) {
+  const pageNum = parseInt(page, 10) || 1;
+  const limitNum = Math.min(Math.max(parseInt(limit, 10) || 10, 1), 100);
+
+  let filteredTrades = [...trades];
+  if (status) {
+    filteredTrades = filteredTrades.filter((t) => t.status === status);
+  }
+  if (direction) {
+    filteredTrades = filteredTrades.filter((t) => t.direction === direction);
+  }
+  if (asset) {
+    filteredTrades = filteredTrades.filter((t) => t.asset.toLowerCase().includes(asset.toLowerCase()));
+  }
+
+  const total = filteredTrades.length;
+  const pages = Math.ceil(total / limitNum);
+  const startIndex = (pageNum - 1) * limitNum;
+  const pageTrades = filteredTrades.slice(startIndex, startIndex + limitNum).map((trade) => ({
+    ...trade,
+    noteCount: getNotesByTrade(trade.id).length,
+    notes: []
+  }));
+
+  return {
+    trades: pageTrades,
+    pagination: {
+      page: pageNum,
+      limit: limitNum,
+      total,
+      pages
+    }
+  };
+}
+
+function getFullStats() {
+  const stats = getStats();
+  return {
+    ...stats,
+    notesCount: notes.length
+  };
+}
+
+function createNote(tradeId, content) {
+  const trade = trades.find((t) => t.id === tradeId);
+  if (!trade) {
+    throw new Error('Trade not found');
+  }
+
+  const noteId = notes.length > 0 ? Math.max(...notes.map((note) => note.id)) + 1 : 1;
+  const createdAt = new Date().toISOString();
+  const note = { id: noteId, tradeId, content, createdAt, updatedAt: createdAt };
+  notes.push(note);
+  return note;
+}
+
+function updateNote(id, content) {
+  const noteIndex = notes.findIndex((n) => n.id === id);
+  if (noteIndex === -1) {
+    throw new Error('Note not found');
+  }
+  notes[noteIndex] = {
+    ...notes[noteIndex],
+    content,
+    updatedAt: new Date().toISOString()
+  };
+  return notes[noteIndex];
+}
+
+function deleteNote(id) {
+  const noteIndex = notes.findIndex((n) => n.id === id);
+  if (noteIndex === -1) {
+    throw new Error('Note not found');
+  }
+  notes.splice(noteIndex, 1);
+  return true;
 }
 
 function getStats() {
@@ -234,25 +376,12 @@ router.put('/:id', (req, res) => {
       return res.status(404).json({ error: 'Trade not found' });
     }
 
-    const { error, value } = tradeSchema.validate(req.body);
+    const { error } = tradeSchema.validate(req.body);
     if (error) {
       return res.status(400).json({ error: error.details[0].message });
     }
 
-    const pnl = calculatePnL(value.entry, value.exit, value.direction);
-    const pnlPercent = calculatePnLPercent(pnl, value.entry);
-    const duration = trades[tradeIndex].duration || calculateDuration(value.startDate, value.endDate);
-
-    const updatedTrade = {
-      id,
-      ...value,
-      pnl,
-      pnlPercent,
-      duration,
-      pips: value.pips != null ? value.pips : Math.round(pnl)
-    };
-
-    trades[tradeIndex] = updatedTrade;
+    const updatedTrade = updateTrade(id, req.body);
     res.json(updatedTrade);
   } catch (error) {
     res.status(500).json({ error: 'Internal server error' });
@@ -263,15 +392,12 @@ router.put('/:id', (req, res) => {
 router.delete('/:id', (req, res) => {
   try {
     const id = parseInt(req.params.id, 10);
-    const tradeIndex = trades.findIndex(t => t.id === id);
-
-    if (tradeIndex === -1) {
-      return res.status(404).json({ error: 'Trade not found' });
-    }
-
-    trades.splice(tradeIndex, 1);
+    deleteTrade(id);
     res.status(204).send();
   } catch (error) {
+    if (error.message === 'Trade not found') {
+      return res.status(404).json({ error: 'Trade not found' });
+    }
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -394,5 +520,15 @@ module.exports = {
   router,
   resetTrades,
   getAllTrades,
-  getStats
+  getStats,
+  getTradeById,
+  getTradesPage,
+  getNotesByTrade,
+  getFullStats,
+  createTrade,
+  updateTrade,
+  deleteTrade,
+  createNote,
+  updateNote,
+  deleteNote
 };

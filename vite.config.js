@@ -24,6 +24,11 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
       },
+      '/graphql': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+        secure: false,
+      },
       '/ws': {
         target: 'ws://localhost:3001',
         ws: true,
@@ -34,5 +39,13 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: './src/test/setup.js',
+    include: ['src/**/*.{test,spec}.{js,ts,jsx,tsx}'],
+    exclude: ['**/node_modules/**', 'dist', '.git', 'coverage', 'e2e/**'],
+    coverage: {
+      all: true,
+      include: ['src/**/*.{js,jsx,ts,tsx}'],
+      exclude: ['**/node_modules/**', 'dist', '.git', 'coverage', 'e2e/**'],
+      reporter: ['text', 'lcov'],
+    },
   }
 })

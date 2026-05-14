@@ -204,7 +204,7 @@ export function TradeDialog({ open, onOpenChange, trade, onSave }) {
                                 placeholder="e.g., BTC/USDT"
                                 value={formData.asset}
                                 onChange={(e) => setFormData({ ...formData, asset: e.target.value })}
-                                className="bg-white/5 border-white/10 focus:border-[#00D1FF]/50 text-white placeholder:text-white/30"
+                                className="bg-white/5 border-white/10 focus:border-[#DC2626]/50 text-white placeholder:text-white/30"
                                 required
                             />
                         </div>
@@ -219,7 +219,7 @@ export function TradeDialog({ open, onOpenChange, trade, onSave }) {
                                     placeholder="0.00"
                                     value={formData.entry}
                                     onChange={(e) => setFormData({ ...formData, entry: e.target.value })}
-                                    className="bg-white/5 border-white/10 focus:border-[#00D1FF]/50 text-white placeholder:text-white/30"
+                                    className="bg-white/5 border-white/10 focus:border-[#DC2626]/50 text-white placeholder:text-white/30"
                                     required
                                 />
                             </div>
@@ -233,7 +233,7 @@ export function TradeDialog({ open, onOpenChange, trade, onSave }) {
                                     placeholder="0.00"
                                     value={formData.exit}
                                     onChange={(e) => setFormData({ ...formData, exit: e.target.value })}
-                                    className="bg-white/5 border-white/10 focus:border-[#00D1FF]/50 text-white placeholder:text-white/30"
+                                    className="bg-white/5 border-white/10 focus:border-[#DC2626]/50 text-white placeholder:text-white/30"
                                     required
                                 />
                             </div>
@@ -246,7 +246,7 @@ export function TradeDialog({ open, onOpenChange, trade, onSave }) {
                                     placeholder="0"
                                     value={formData.pips}
                                     onChange={(e) => setFormData({ ...formData, pips: e.target.value })}
-                                    className="bg-white/5 border-white/10 focus:border-[#00D1FF]/50 text-white placeholder:text-white/30"
+                                    className="bg-white/5 border-white/10 focus:border-[#DC2626]/50 text-white placeholder:text-white/30"
                                 />
                             </div>
                         </div>
@@ -259,7 +259,7 @@ export function TradeDialog({ open, onOpenChange, trade, onSave }) {
                                     type="datetime-local"
                                     value={formData.startDate}
                                     onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                                    className="bg-white/5 border-white/10 focus:border-[#00D1FF]/50 text-white"
+                                    className="bg-white/5 border-white/10 focus:border-[#DC2626]/50 text-white"
                                     required
                                 />
                             </div>
@@ -271,7 +271,7 @@ export function TradeDialog({ open, onOpenChange, trade, onSave }) {
                                     type="datetime-local"
                                     value={formData.endDate}
                                     onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                                    className="bg-white/5 border-white/10 focus:border-[#00D1FF]/50 text-white"
+                                    className="bg-white/5 border-white/10 focus:border-[#DC2626]/50 text-white"
                                     required
                                 />
                             </div>
@@ -313,7 +313,7 @@ export function TradeDialog({ open, onOpenChange, trade, onSave }) {
                                 placeholder="Enter your trade analysis, what went well, what could be improved..."
                                 value={formData.review}
                                 onChange={(e) => setFormData({ ...formData, review: e.target.value })}
-                                className="bg-white/5 border-white/10 focus:border-[#00D1FF]/50 text-white placeholder:text-white/30 min-h-[100px]"
+                                className="bg-white/5 border-white/10 focus:border-[#DC2626]/50 text-white placeholder:text-white/30 min-h-[100px]"
                             />
                         </div>
                     </div>
@@ -343,7 +343,7 @@ export function TradeDialog({ open, onOpenChange, trade, onSave }) {
                             onDrop={handleDrop}
                             className={`relative border-2 border-dashed rounded-xl p-8 transition-all ${
                                 isDragging
-                                    ? "border-[#00D1FF] bg-[#00D1FF]/5"
+                                    ? "border-[#DC2626] bg-[#DC2626]/5"
                                     : "border-white/10 hover:border-white/20"
                             }`}
                         >
@@ -364,7 +364,7 @@ export function TradeDialog({ open, onOpenChange, trade, onSave }) {
                                     <button
                                         type="button"
                                         onClick={() => fileInputRef.current?.click()}
-                                        className="text-[#00D1FF] hover:text-[#00D1FF]/80 text-sm"
+                                        className="text-[#DC2626] hover:text-[#DC2626]/80 text-sm"
                                     >
                                         or browse files
                                     </button>
@@ -389,7 +389,7 @@ export function TradeDialog({ open, onOpenChange, trade, onSave }) {
                                             className="w-full h-32 object-cover"
                                         />
                                         <div className="absolute top-2 left-2">
-                      <span className="px-2 py-0.5 bg-[#00D1FF] text-[#0A0A0A] rounded text-xs">
+                      <span className="px-2 py-0.5 bg-[#DC2626] text-white rounded text-xs">
                         {img.timeframe}
                       </span>
                                         </div>
@@ -417,7 +417,7 @@ export function TradeDialog({ open, onOpenChange, trade, onSave }) {
                         </button>
                         <button
                             type="submit"
-                            className="flex-1 px-4 py-2.5 bg-[#00D1FF] text-[#0A0A0A] rounded-lg hover:shadow-[0_0_20px_rgba(0,209,255,0.3)] transition-all text-sm tracking-wide uppercase"
+                            className="flex-1 px-4 py-2.5 bg-[#DC2626] text-white rounded-lg hover:shadow-[0_0_20px_rgba(220,38,38,0.3)] transition-all text-sm tracking-wide uppercase"
                         >
                             {trade ? "Update" : "Create"}
                         </button>
