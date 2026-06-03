@@ -47,6 +47,10 @@ export default defineConfig(({ mode }) => {
         // },
       },
     },
+    // ⚡ ADDED THIS PREVIEW BLOCK FOR RAILWAY PRODUCTION HOSTING:
+    preview: {
+      allowedHosts: ['.railway.app', 'frontend-production-fb90.up.railway.app']
+    },
     test: {
       environment: 'jsdom',
       globals: true,
