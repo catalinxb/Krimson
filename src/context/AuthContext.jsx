@@ -120,7 +120,8 @@ export function AuthProvider({ children }) {
     }, [hasRole]);
 
     const apiFetch = useCallback(async (endpoint, options = {}) => {
-        const url = endpoint.startsWith('http') ? endpoint : `${window.location.origin}${endpoint}`;
+        const API_URL = import.meta.env.VITE_API_URL || window.location.origin;
+        const url = endpoint.startsWith('http') ? endpoint : `${API_URL}${endpoint}`;
 
         const response = await fetch(url, {
             ...options,
