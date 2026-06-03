@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
-import { ArrowLeft, User, Key, Mail, SlidersHorizontal, Palette, Shield, Lock, QrCode, Copy, Check, Eye, EyeOff, AlertTriangle } from "lucide-react";
+import { ArrowLeft, User, Mail, SlidersHorizontal, Palette, Shield, Lock, QrCode, Copy, Check, Eye, EyeOff, AlertTriangle } from "lucide-react";
 import { useTrades } from "../context/TradeContext";
 import { useTheme } from "../context/ThemeContext";
 import { useAuth } from "../context/AuthContext";
@@ -15,7 +15,6 @@ export function ProfilePage() {
   const [form, setForm] = useState({
     displayName: profile?.displayName || "Anon Trader",
     email: profile?.email || "",
-    password: profile?.password || "",
     pipValue: profile?.pipValue ?? 1,
   });
   const [selectedTheme, setSelectedTheme] = useState(theme || "dark");
@@ -72,7 +71,6 @@ export function ProfilePage() {
     saveProfile({
       displayName: form.displayName || "Anon Trader",
       email: form.email,
-      password: form.password,
       pipValue: Number.isFinite(form.pipValue) && form.pipValue > 0 ? form.pipValue : 1,
     });
     saveTheme(selectedTheme);
@@ -225,20 +223,6 @@ export function ProfilePage() {
                     onChange={handleChange("email")}
                     className="w-full bg-transparent outline-none text-foreground placeholder:text-foreground/30"
                     placeholder="you@example.com"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="text-sm text-foreground/70 block mb-2">Password</label>
-                <div className="flex items-center gap-3 bg-muted border border-border rounded-xl px-4 py-3">
-                  <Key className="w-4 h-4 text-orange-500" />
-                  <input
-                    type="password"
-                    value={form.password}
-                    onChange={handleChange("password")}
-                    className="w-full bg-transparent outline-none text-foreground placeholder:text-foreground/30"
-                    placeholder="••••••••"
                   />
                 </div>
               </div>
