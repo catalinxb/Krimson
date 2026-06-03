@@ -215,16 +215,11 @@ export function ProfilePage() {
 
               <div>
                 <label className="text-sm text-foreground/70 block mb-2">Email</label>
-                <div className="flex items-center gap-3 bg-muted border border-border rounded-xl px-4 py-3">
+                <div className="flex items-center gap-3 bg-muted/50 border border-border rounded-xl px-4 py-3">
                   <Mail className="w-4 h-4 text-primary" />
-                  <input
-                    type="email"
-                    value={form.email}
-                    onChange={handleChange("email")}
-                    className="w-full bg-transparent outline-none text-foreground placeholder:text-foreground/30"
-                    placeholder="you@example.com"
-                  />
+                  <span className="text-foreground">{form.email || "Not set"}</span>
                 </div>
+                <p className="text-xs text-foreground/50 mt-1">Email cannot be changed from profile</p>
               </div>
 
               <div>
