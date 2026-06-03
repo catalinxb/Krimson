@@ -19,8 +19,9 @@ const registerSchema = Joi.object({
   password: Joi.string().min(6).required()
     .messages({
       'string.min': 'Password must be at least 6 characters long'
-    })
-});
+    }),
+  displayName: Joi.string().min(1).max(50).optional()
+}).unknown(true);
 
 const passwordResetSchema = Joi.object({
   tokenId: Joi.string().uuid().required(),
