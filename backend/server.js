@@ -331,8 +331,24 @@ if (NODE_ENV === 'development') {
 }
 
 // Routes
+console.log('Loading auth routes...');
 app.use('/api/auth', authRoutes);
+console.log('Auth routes loaded at /api/auth');
+
 app.use('/api/trades', tradeRoutes.router);
+console.log('Trade routes loaded at /api/trades');
+
+// Debug: List all registered routes
+if (process.env.NODE_ENV !== 'production') {
+  console.log('Registered routes:');
+  app._router.stack.forEach((r) => {
+    if (r.route && r.route.path) {
+      console.log(`  ${Object.keys(r.route.methods)} ${r.route.path}`);
+    } else if (r.name === 'router') {
+      console.log(`  Router mounted at: ${r.regexp}`);
+    }
+  });
+}
 
 // Error handling middleware
 app.use((err, req, res, next) => {
