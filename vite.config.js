@@ -50,7 +50,7 @@ export default defineConfig(({ mode }) => {
       host: '0.0.0.0',
       port: productionPort,
       strictPort: true,
-      allowedHosts: ['.railway.app', 'frontend-production-fb90.up.railway.app']
+      allowedHosts: ['.railway.app', '.vercel.app', '.render.com', 'krimson-frontend.vercel.app']
     },
     build: {
       // ⚡ RESTORED: Standard optimization using native core compiler options

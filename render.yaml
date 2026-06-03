@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: krimson-backend
+    runtime: node
+    region: frankfurt
+    plan: free
+    buildCommand: cd backend && npm install && npx prisma db push --accept-data-loss && npx prisma generate
+    startCommand: cd backend && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: SERVER_HOST
+        value: 0.0.0.0
+      - key: USE_HTTPS
+        value: false
+      - key: DATABASE_URL
+        value: file:./dev.db
+      - key: SESSION_TIMEOUT_SECONDS
+        value: 1800
+      - key: ALLOWED_ORIGINS
+        sync: false
+      - key: AUTH_SECRET
+        generateValue: true
+    healthCheckPath: /api/trades/health
+    autoDeploy: true
