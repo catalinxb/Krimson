@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
-import { Plus, Edit2, Trash2, Eye, ArrowLeft, TrendingUp, TrendingDown, BarChart3, Settings2 } from "lucide-react";
+import { Plus, Edit2, Trash2, Eye, ArrowLeft, TrendingUp, TrendingDown, BarChart3, Settings2, MessageSquare, FileText } from "lucide-react";
 import { motion as Motion } from "framer-motion";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } from "recharts";
 import { useCookieTracker } from "../hooks/useCookieTracker";
@@ -13,16 +13,19 @@ import {
     TableRow,
 } from "../components/ui/table";
 import { TradeDialog } from "../components/TradeDialog";
-import { useTrades, getAdjustedPnl } from "../context/TradeContext"; // Pulling in our global RAM state
+import { ChatPanel } from "../components/ChatPanel";
+import { useTrades } from "../context/TradeContext";
+import { getAdjustedPnl } from "../lib/tradeUtils"; // Pulling in our global RAM state
 
 export function MasterTablePage() {
     const navigate = useNavigate();
     const { showCharts, saveShowCharts } = useCookieTracker();
 
-    const { trades, stats, pagination, isLoadingPage, hasMore, loadNextPage, loadTradePage, addTrade, editTrade, deleteTrade, startGenerator, stopGenerator, generatorRunning, isOnline, profile, serverNotice } = useTrades();
+    const { trades, stats, pagination, isLoadingPage, hasMore, loadNextPage, loadTradePage, addTrade, editTrade, deleteTrade, startGenerator, stopGenerator, generatorRunning, isOnline, profile, serverNotice, currentUser, chatMessages, chatInput, setChatInput, sendChatMessage } = useTrades();
 
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [editingTrade, setEditingTrade] = useState(null);
+    const [showChat, setShowChat] = useState(false);
     const loadMoreRef = useRef(null);
 
     const currentTrades = trades;
@@ -35,23 +38,24 @@ export function MasterTablePage() {
     const totalPnlFromTrades = trades.reduce((sum, trade) => sum + getAdjustedPnl(trade, profile), 0);
 
     const safeStats = {
-        totalTrades: typeof stats?.totalTrades === 'number' ? stats.totalTrades : totalTradesCount,
-        winners: typeof stats?.winners === 'number' ? stats.winners : winningTrades.length,
-        losers: typeof stats?.losers === 'number' ? stats.losers : losingTrades.length,
-        breakeven: typeof stats?.breakeven === 'number' ? stats.breakeven : breakevenTrades,
-        totalPnL: typeof stats?.totalPnL === 'number' ? stats.totalPnL : totalPnlFromTrades,
+        totalTrades: totalTradesCount,
+        winners: winningTrades.length,
+        losers: losingTrades.length,
+        breakeven: breakevenTrades,
+        totalPnL: totalPnlFromTrades,
     };
 
+    // Infinite scroll observer
     useEffect(() => {
         const observerNode = loadMoreRef.current;
-        if (!observerNode || !hasMore || typeof window === 'undefined' || typeof window.IntersectionObserver === 'undefined') {
+        if (!observerNode || !hasMore || isLoadingPage || typeof window === 'undefined' || typeof window.IntersectionObserver === 'undefined') {
             return;
         }
 
         const observer = new window.IntersectionObserver(
             (entries) => {
                 entries.forEach((entry) => {
-                    if (entry.isIntersecting) {
+                    if (entry.isIntersecting && !isLoadingPage) {
                         loadNextPage();
                     }
                 });
@@ -61,7 +65,7 @@ export function MasterTablePage() {
 
         observer.observe(observerNode);
         return () => observer.disconnect();
-    }, [hasMore, loadNextPage]);
+    }, [hasMore, loadNextPage, isLoadingPage]);
 
     const handleDeleteTrade = (id) => {
         if (window.confirm("Are you sure you want to delete this trade?")) {
@@ -83,6 +87,7 @@ export function MasterTablePage() {
     const winLossData = [
         { name: "Winners", value: winningTrades.length, color: "#00FF85" },
         { name: "Losers", value: losingTrades.length, color: "#FF3D3D" },
+        { name: "Breakeven", value: breakevenTrades, color: "#FFA500" },
     ];
 
     const totalCompleted = winningTrades.length + losingTrades.length;
@@ -153,6 +158,13 @@ export function MasterTablePage() {
                                 <span className="hidden sm:inline">Charts</span>
                             </button>
                             <button
+                                onClick={() => navigate('/admin/logs')}
+                                className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg border border-border text-foreground/50 hover:bg-foreground/5 transition-all text-xs sm:text-sm tracking-wide uppercase"
+                            >
+                                <FileText className="w-3.5 sm:w-4 h-3.5 sm:h-4" />
+                                <span className="hidden sm:inline">Logs</span>
+                            </button>
+                            <button
                                 onClick={generatorRunning ? stopGenerator : startGenerator}
                                 className={`px-3 sm:px-4 py-2 rounded-lg border transition-all text-xs sm:text-sm tracking-wide uppercase ${generatorRunning ? 'border-destructive text-destructive hover:bg-destructive/10' : 'border-foreground/30 text-foreground/70 hover:bg-foreground/5'}`}
                             >
@@ -165,6 +177,14 @@ export function MasterTablePage() {
                                 <Settings2 className="w-3.5 sm:w-4 h-3.5 sm:h-4" />
                                 <span className="hidden sm:inline">Profile</span>
                             </button>
+                            {currentUser?.roles?.some((role) => role.name === 'admin') && (
+                                <button
+                                    onClick={() => navigate('/admin/logs')}
+                                    className="px-3 sm:px-4 py-2 rounded-lg border border-border text-foreground/70 hover:text-foreground hover:border-sky-400 transition-all text-xs sm:text-sm tracking-wide uppercase hidden md:inline-flex"
+                                >
+                                    Admin Logs
+                                </button>
+                            )}
                             <button
                                 onClick={() => navigate("/vault")}
                                 className="px-3 sm:px-4 py-2 rounded-lg border border-primary/30 text-primary hover:bg-primary/10 transition-all text-xs sm:text-sm tracking-wide uppercase hidden sm:inline-block"
@@ -226,7 +246,7 @@ export function MasterTablePage() {
                 </div>
 
                 {/* Main Content */}
-                <div className="space-y-6 sm:space-y-8 px-3 sm:px-6">
+                <div className="space-y-6 sm:space-y-8">
                     {/* Table */}
                     {isEmpty && (
                         <div className="rounded-xl border border-border bg-card/60 p-6 text-center text-foreground/70">
@@ -459,7 +479,7 @@ export function MasterTablePage() {
                                                 {monthlyPnLData.map((entry, index) => (
                                                     <Cell
                                                         key={`cell-${index}`}
-                                                        fill={entry.pnl >= 0 ? 'var(--success)' : 'var(--destructive)'}
+                                                        fill={entry.pnl >= 0 ? '#00FF85' : '#FF3D3D'}
                                                     />
                                                 ))}
                                             </Bar>
@@ -470,6 +490,31 @@ export function MasterTablePage() {
                         </Motion.div>
                     )}
                 </div>
+            </div>
+
+            <div className="fixed right-4 bottom-4 z-50 flex flex-col items-end gap-3">
+                {!showChat && (
+                    <button
+                        type="button"
+                        onClick={() => setShowChat(true)}
+                        className="inline-flex items-center gap-2 rounded-full bg-rose-600 px-4 py-3 text-sm font-semibold text-background shadow-lg shadow-black/20 transition hover:bg-rose-700"
+                    >
+                        <MessageSquare className="h-4 w-4" />
+                        Chat
+                    </button>
+                )}
+                {showChat && (
+                    <div className="w-[320px] max-w-[calc(100vw-1rem)]">
+                        <ChatPanel
+                            currentUser={currentUser}
+                            chatMessages={chatMessages}
+                            chatInput={chatInput}
+                            setChatInput={setChatInput}
+                            sendChatMessage={sendChatMessage}
+                            onClose={() => setShowChat(false)}
+                        />
+                    </div>
+                )}
             </div>
 
             {/* Trade Dialog */}

@@ -1,0 +1,186 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              Int              @id @default(autoincrement())
+  email           String           @unique
+  username        String?          @unique
+  password        String
+  emailVerified   Boolean          @default(false)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  profile         Profile?
+  trades          Trade[]
+  userRoles       UserRole[]
+  auditLogs       AuditLog[]
+  sessions        Session[]
+  refreshTokens   RefreshToken[]
+  twoFactorAuth   TwoFactorAuth?
+  passwordResets  PasswordReset[]
+  loginAttempts   LoginAttempt[]
+}
+
+model Profile {
+  id           Int     @id @default(autoincrement())
+  userId       Int     @unique
+  user         User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  displayName  String  @default("Anon Trader")
+  pipValue     Float   @default(1.0)
+  theme        String  @default("dark")
+}
+
+model Role {
+  id          Int           @id @default(autoincrement())
+  name        String        @unique
+  description String?
+  userRoles   UserRole[]
+  permissions RolePermission[]
+}
+
+model Permission {
+  id          Int           @id @default(autoincrement())
+  name        String        @unique
+  description String?
+  roles       RolePermission[]
+}
+
+model UserRole {
+  id      Int   @id @default(autoincrement())
+  userId  Int
+  roleId  Int
+  user    User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role    Role  @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, roleId])
+}
+
+model RolePermission {
+  id           Int        @id @default(autoincrement())
+  roleId       Int
+  permissionId Int
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+}
+
+model AuditLog {
+  id        Int      @id @default(autoincrement())
+  userId    Int?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  action    String
+  resource  String
+  status    String
+  details   String?
+  metadata  String?  // Stored as JSON string since SQLite doesn't support Json type
+  createdAt DateTime @default(now())
+}
+
+model Trade {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  asset      String
+  entry      Float
+  exit       Float
+  pnl        Float
+  pnlPercent Float
+  direction  String
+  status     String
+  startDate  DateTime
+  endDate    DateTime
+  review     String?
+  pips       Int?
+  duration   String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  notes      Note[]
+}
+
+model Note {
+  id        Int      @id @default(autoincrement())
+  trade     Trade    @relation(fields: [tradeId], references: [id], onDelete: Cascade)
+  tradeId   Int
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Session {
+  id           String   @id @default(uuid())
+  userId       Int
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token        String   @unique
+  ipAddress    String?
+  userAgent    String?
+  expiresAt    DateTime
+  lastActivity DateTime @default(now())
+  isValid      Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  @@index([userId])
+  @@index([token])
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  expiresAt DateTime
+  isRevoked Boolean  @default(false)
+  createdAt DateTime @default(now())
+  replacedBy String? // ID of new token when rotated
+
+  @@index([userId])
+  @@index([token])
+}
+
+model TwoFactorAuth {
+  id            Int      @id @default(autoincrement())
+  userId        Int      @unique
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  secret        String   // TOTP secret
+  backupCodes   String   // JSON array of hashed backup codes
+  isEnabled     Boolean  @default(false)
+  verifiedAt    DateTime?
+  method        String   @default("totp") // totp, email, sms
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model PasswordReset {
+  id          String   @id @default(uuid())
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token       String   @unique
+  expiresAt   DateTime
+  isUsed      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  usedAt      DateTime?
+
+  @@index([userId])
+  @@index([token])
+}
+
+model LoginAttempt {
+  id          String   @id @default(uuid())
+  userId      Int?
+  user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  email       String?
+  ipAddress   String?
+  userAgent   String?
+  success     Boolean
+  failureReason String?
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([email])
+  @@index([createdAt])
+}

@@ -2,7 +2,8 @@ import { useNavigate, useParams } from "react-router";
 import { ArrowLeft, DollarSign, Image as ImageIcon } from "lucide-react";
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
-import { useTrades, getAdjustedPnl } from "../context/TradeContext";
+import { useTrades } from "../context/TradeContext";
+import { getAdjustedPnl } from "../lib/tradeUtils";
 
 const tradeRationale = {
     strategy: "Breakout Trading",

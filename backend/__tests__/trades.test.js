@@ -2,8 +2,12 @@ const request = require('supertest');
 const app = require('../server');
 const tradeRoutes = require('../routes/trades');
 
-beforeEach(() => {
-  tradeRoutes.resetTrades();
+beforeEach(async () => {
+  await tradeRoutes.resetTrades();
+});
+
+afterAll(async () => {
+  await tradeRoutes.disconnect();
 });
 
 describe('Trade API', () => {
@@ -21,9 +25,11 @@ describe('Trade API', () => {
   });
 
   test('GET /api/trades/:id returns a single trade', async () => {
-    const response = await request(app).get('/api/trades/1');
+    const listResponse = await request(app).get('/api/trades');
+    const tradeId = listResponse.body.trades[0].id;
+    const response = await request(app).get(`/api/trades/${tradeId}`);
     expect(response.status).toBe(200);
-    expect(response.body.id).toBe(1);
+    expect(response.body.id).toBe(tradeId);
   });
 
   test('POST /api/trades creates a new trade', async () => {
@@ -48,6 +54,8 @@ describe('Trade API', () => {
   });
 
   test('PUT /api/trades/:id updates an existing trade', async () => {
+    const listResponse = await request(app).get('/api/trades');
+    const tradeId = listResponse.body.trades[0].id;
     const payload = {
       asset: 'BTC/USDT',
       entry: 42500,
@@ -60,17 +68,19 @@ describe('Trade API', () => {
       pips: 250
     };
 
-    const response = await request(app).put('/api/trades/1').send(payload);
+    const response = await request(app).put(`/api/trades/${tradeId}`).send(payload);
     expect(response.status).toBe(200);
     expect(response.body.pnl).toBe(2500);
     expect(response.body.review).toBe('Updated review content.');
   });
 
   test('DELETE /api/trades/:id removes the trade', async () => {
-    const response = await request(app).delete('/api/trades/2');
+    const listResponse = await request(app).get('/api/trades');
+    const tradeId = listResponse.body.trades[1].id;
+    const response = await request(app).delete(`/api/trades/${tradeId}`);
     expect(response.status).toBe(204);
 
-    const getResponse = await request(app).get('/api/trades/2');
+    const getResponse = await request(app).get(`/api/trades/${tradeId}`);
     expect(getResponse.status).toBe(404);
   });
 

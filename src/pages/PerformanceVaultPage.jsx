@@ -1,7 +1,8 @@
 import { useNavigate } from "react-router";
 import { ArrowLeft, Star, TrendingUp, Award, BrainCircuit, Terminal } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } from "recharts";
-import { useTrades, getAdjustedPnl } from "../context/TradeContext";
+import { useTrades } from "../context/TradeContext";
+import { getAdjustedPnl } from "../lib/tradeUtils";
 import { useState, useEffect } from "react";
 
 export function PerformanceVaultPage() {
@@ -21,10 +22,12 @@ export function PerformanceVaultPage() {
     const totalPnL = trades.reduce((sum, item) => sum + getAdjustedPnl(item, profile), 0);
     const winningTrades = trades.filter((t) => t.status === "winner");
     const losingTrades = trades.filter((t) => t.status === "loser");
+    const breakevenTrades = trades.filter((t) => t.status === "breakeven").length;
 
     const winLossData = [
         { name: "Winners", value: winningTrades.length, color: "#00FF85" },
         { name: "Losers", value: losingTrades.length, color: "#FF3D3D" },
+        { name: "Breakeven", value: breakevenTrades, color: "#FFA500" },
     ];
 
     const totalCompleted = winningTrades.length + losingTrades.length;

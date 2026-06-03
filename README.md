@@ -21,7 +21,7 @@ Krimson helps you track your trades, analyze your performance, and refine your e
    git clone [https://github.com/catalinxb/Krimson.git](https://github.com/catalinxb/Krimson.git)
 
 ### Test commands
-npx vitest
-npx vitest run --coverage
-npx playwright test
-npx playwright test --ui
+* npx vitest
+* npx vitest run --coverage
+* npx playwright test
+* npx playwright test --ui

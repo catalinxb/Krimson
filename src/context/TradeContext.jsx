@@ -1,4 +1,5 @@
-﻿import { createContext, useContext, useEffect, useRef, useState } from "react";
+﻿import React, { createContext, useContext, useCallback, useEffect, useRef, useState } from "react";
+import { useAuth } from "./AuthContext";
 
 const initialTrades = [
     { id: 1, asset: "BTC/USDT", entry: 42500, exit: 45200, pnl: 2700, pnlPercent: 6.35, status: "winner", direction: "long", startDate: "2026-03-15T09:30", endDate: "2026-03-16T14:45", pips: 270, review: "Strong bullish momentum confirmed on 4H chart. Entry taken after breakout above resistance.", duration: "10h 30m" },
@@ -8,9 +9,10 @@ const initialTrades = [
 const STORAGE_TRADES_KEY = 'trade_dashboard_trades';
 const STORAGE_QUEUE_KEY = 'trade_dashboard_queue';
 const STORAGE_PROFILE_KEY = 'trade_dashboard_profile';
-const GRAPHQL_ENDPOINT = import.meta.env.DEV ? 'http://localhost:3001/graphql' : '/graphql';
+const GRAPHQL_ENDPOINT = '/graphql';
+// Use backend server for WebSocket, not the Vite dev server
 const WS_BASE = typeof window !== 'undefined'
-    ? `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.hostname}:${import.meta.env.DEV ? '3001' : window.location.port}/ws`
+    ? `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.hostname}:3001/ws`
     : '';
 
 const defaultProfile = {
@@ -29,7 +31,14 @@ const TradeContext = createContext({
     isOnline: true,
     syncStatus: 'idle',
     serverNotice: '',
-    queuedOperations: 0
+    queuedOperations: 0,
+    currentUser: null,
+    chatMessages: [],
+    chatInput: '',
+    login: async () => {},
+    logout: () => {},
+    sendChatMessage: async () => {},
+    setChatInput: () => {}
 });
 
 function safeParse(value, fallback) {
@@ -113,29 +122,7 @@ const defaultStats = {
     notesCount: 0
 };
 
-async function graphqlFetch(query, variables = {}) {
-    if (typeof window === 'undefined' || typeof window.fetch !== 'function') {
-        throw new Error('Fetch is unavailable');
-    }
-
-    const response = await window.fetch(GRAPHQL_ENDPOINT, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ query, variables })
-    });
-
-    const payload = await response.json();
-    if (!response.ok || payload.errors) {
-        const errorMessage = payload.errors?.[0]?.message || 'GraphQL request failed';
-        throw new Error(errorMessage);
-    }
-
-    return payload.data;
-}
-
-export function getAdjustedPnl(trade, profile) {
+function getAdjustedPnl(trade, profile) {
     if (trade?.pips != null && typeof profile?.pipValue === 'number') {
         return trade.pips * profile.pipValue;
     }
@@ -155,6 +142,8 @@ function calculateDuration(startDate, endDate) {
 }
 
 export function TradeProvider({ children }) {
+    const { currentUser, isAuthenticated, authHeaders, logout: authLogout } = useAuth();
+
     const [trades, setTrades] = useState(() => loadFromStorage(STORAGE_TRADES_KEY, initialTrades));
     const [queue, setQueue] = useState(() => loadFromStorage(STORAGE_QUEUE_KEY, []));
     const [profile, setProfile] = useState(() => loadFromStorage(STORAGE_PROFILE_KEY, defaultProfile));
@@ -162,6 +151,8 @@ export function TradeProvider({ children }) {
     const [pagination, setPagination] = useState({ page: 0, limit: 8, total: 0, pages: 0 });
     const [isLoadingPage, setIsLoadingPage] = useState(false);
     const [hasMore, setHasMore] = useState(true);
+    const [chatMessages, setChatMessages] = useState([]);
+    const [chatInput, setChatInput] = useState('');
     const [generatorRunning, setGeneratorRunning] = useState(false);
     const [isOnline, setIsOnline] = useState(() => typeof navigator !== 'undefined' ? navigator.onLine : true);
     const [syncStatus, setSyncStatus] = useState('idle');
@@ -169,10 +160,13 @@ export function TradeProvider({ children }) {
     const wsRef = useRef(null);
     const isSyncingRef = useRef(false);
     const reconnectTimer = useRef(null);
+    const isMountedRef = useRef(false);
+    const hasBootstrappedRef = useRef(false);
     const tradesRef = useRef(trades);
     const queueRef = useRef(queue);
     const loadedPagesRef = useRef(new Set());
     const prefetchCacheRef = useRef({});
+    const prefetchTradePageRef = useRef(null);
 
     useEffect(() => {
         tradesRef.current = trades;
@@ -205,6 +199,43 @@ export function TradeProvider({ children }) {
         saveToStorage(STORAGE_PROFILE_KEY, nextProfile);
     };
 
+    // Use authHeaders from AuthContext directly
+    const getAuthHeaders = () => authHeaders();
+
+    const graphqlFetch = async (query, variables = {}) => {
+        if (typeof window === 'undefined' || typeof window.fetch !== 'function') {
+            throw new Error('Fetch is unavailable');
+        }
+
+        let response;
+        try {
+            response = await window.fetch(GRAPHQL_ENDPOINT, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...getAuthHeaders()
+                },
+                body: JSON.stringify({ query, variables })
+            });
+        } catch (fetchError) {
+            throw new Error(`Unable to reach GraphQL endpoint ${GRAPHQL_ENDPOINT}: ${fetchError.message}`);
+        }
+
+        let payload;
+        try {
+            payload = await response.json();
+        } catch (parseError) {
+            throw new Error(`Invalid JSON response from GraphQL endpoint ${GRAPHQL_ENDPOINT}: ${parseError.message}`);
+        }
+
+        if (!response.ok || payload.errors) {
+            const errorMessage = payload.errors?.[0]?.message || 'GraphQL request failed';
+            throw new Error(errorMessage);
+        }
+
+        return payload.data;
+    };
+
     const saveProfile = (updated) => {
         persistProfile({ ...profile, ...updated });
     };
@@ -216,20 +247,97 @@ export function TradeProvider({ children }) {
             if (data?.stats) {
                 setStats(data.stats);
             }
+        } catch (err) {
+            console.error('loadStats error:', err.message);
+        }
+    };
+
+    const loadAuditOverview = async (limit = 200) => {
+        try {
+            const response = await window.fetch(`/api/trades/audit/overview?limit=${limit}`, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...getAuthHeaders()
+                }
+            });
+            const payload = await response.json();
+            if (!response.ok) {
+                throw new Error(payload.error || 'Failed to fetch audit overview');
+            }
+            return payload;
+        } catch (error) {
+            setServerNotice('Unable to load audit logs: ' + error.message);
+            return { logs: [], observations: [] };
+        }
+    };
+
+    // Note: login/logout are now handled by AuthContext
+    // These are kept for backward compatibility but delegate to AuthContext
+    const login = async (email, password) => {
+        console.warn('TradeContext.login is deprecated. Use AuthContext.login instead.');
+        return null;
+    };
+
+    const logout = () => {
+        authLogout();
+        setServerNotice('Logged out');
+    };
+
+    const loadChatMessages = async () => {
+        try {
+            const response = await window.fetch('/api/trades/chat/messages', {
+                headers: getAuthHeaders()
+            });
+            if (!response.ok) {
+                throw new Error('Unable to fetch chat history');
+            }
+            const data = await response.json();
+            setChatMessages(data);
         } catch {
-            // Keep local stats if backend is unavailable.
+            // ignore failures until connection returns
+        }
+    };
+
+    const sendChatMessage = async (sender, text, room = 'global') => {
+        if (!sender || !text) {
+            return;
+        }
+
+        try {
+            const response = await window.fetch('/api/trades/chat/messages', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+                body: JSON.stringify({ sender, text, room })
+            });
+            const message = await response.json();
+            if (response.ok) {
+                setChatMessages((current) => [...current, message]);
+                return message;
+            }
+            throw new Error(message.error || 'Failed to send');
+        } catch (error) {
+            setServerNotice('Chat send failed: ' + error.message);
         }
     };
 
     const startGenerator = async () => {
         try {
-            const response = await window.fetch('/api/trades/generator/start', { method: 'POST' });
+            console.log('Starting generator...');
+            const response = await window.fetch('/api/trades/generator/start', {
+                method: 'POST',
+                headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+                body: JSON.stringify({ force: true })
+            });
+            console.log('Generator response status:', response.status);
             const payload = await response.json();
+            console.log('Generator response:', payload);
             if (!response.ok) {
                 throw new Error(payload.error || 'Failed to start generator');
             }
             setGeneratorRunning(true);
             setServerNotice('Trade generator started');
+            // Immediate refresh to show trades
+            setTimeout(() => loadTradePage(1, pagination.limit), 500);
             return true;
         } catch (error) {
             setServerNotice('Could not start generator: ' + error.message);
@@ -239,7 +347,7 @@ export function TradeProvider({ children }) {
 
     const stopGenerator = async () => {
         try {
-            const response = await window.fetch('/api/trades/generator/stop', { method: 'POST' });
+            const response = await window.fetch('/api/trades/generator/stop', { method: 'POST', headers: getAuthHeaders() });
             const payload = await response.json();
             if (!response.ok) {
                 throw new Error(payload.error || 'Failed to stop generator');
@@ -253,7 +361,11 @@ export function TradeProvider({ children }) {
         }
     };
 
-    const loadTradePage = async (page = 1, limit = pagination.limit) => {
+    const loadTradePage = useCallback(async (page = 1, limit = pagination.limit) => {
+        // Skip if not authenticated - protected data requires login
+        if (!isAuthenticated) {
+            return null;
+        }
         if (loadedPagesRef.current.has(page) || isLoadingPage || (pagination.pages && page > pagination.pages)) {
             return null;
         }
@@ -268,11 +380,8 @@ export function TradeProvider({ children }) {
                 return null;
             }
 
-            if (page === 1) {
-                setTrades(pageData.trades);
-            } else {
-                setTrades((previousTrades) => mergeTrades(previousTrades, pageData.trades));
-            }
+            // Always merge to prevent duplicate local trades
+            setTrades((previousTrades) => mergeTrades(previousTrades, pageData.trades));
 
             setPagination(pageData.pagination);
             setHasMore(pageData.pagination.page < pageData.pagination.pages);
@@ -280,19 +389,20 @@ export function TradeProvider({ children }) {
             setStats(data.stats || defaultStats);
 
             const nextPage = pageData.pagination.page + 1;
-            if (nextPage <= pageData.pagination.pages) {
-                prefetchTradePage(nextPage, pageData.pagination.limit);
+            if (nextPage <= pageData.pagination.pages && prefetchTradePageRef.current) {
+                prefetchTradePageRef.current(nextPage, pageData.pagination.limit);
             }
 
             return pageData;
-        } catch {
+        } catch (error) {
+            console.error('loadTradePage error:', error);
             return null;
         } finally {
             setIsLoadingPage(false);
         }
-    };
+    }, [isAuthenticated, isLoadingPage, pagination.pages]);
 
-    const prefetchTradePage = async (page, limit = pagination.limit) => {
+    const prefetchTradePage = useCallback(async (page, limit = pagination.limit) => {
         if (page < 1 || loadedPagesRef.current.has(page) || prefetchCacheRef.current[page]) {
             return;
         }
@@ -303,16 +413,38 @@ export function TradeProvider({ children }) {
             if (data?.trades) {
                 prefetchCacheRef.current[page] = data.trades;
             }
-        } catch {
-            // ignore prefetch failures
+        } catch (error) {
+            // ignore prefetch failures but log in dev
+            if (import.meta.env.DEV) {
+                console.debug('prefetchTradePage failed:', error.message);
+            }
         }
-    };
+    }, [pagination.limit]);
 
-    const loadNextPage = async () => {
+    // Store prefetchTradePage in ref to avoid circular dependency
+    useEffect(() => {
+        prefetchTradePageRef.current = prefetchTradePage;
+    }, [prefetchTradePage]);
+
+    // Throttle loadNextPage to prevent rapid scroll requests
+    const lastLoadTimeRef = useRef(0);
+
+    const loadNextPage = useCallback(async () => {
+        // Skip if not authenticated
+        if (!isAuthenticated) {
+            return;
+        }
         const nextPage = pagination.page + 1;
         if (!hasMore || nextPage <= 0) {
             return;
         }
+
+        // Throttle: wait at least 500ms between load requests
+        const now = Date.now();
+        if (now - lastLoadTimeRef.current < 500) {
+            return;
+        }
+        lastLoadTimeRef.current = now;
 
         if (prefetchCacheRef.current[nextPage]) {
             const pageData = prefetchCacheRef.current[nextPage];
@@ -321,12 +453,14 @@ export function TradeProvider({ children }) {
             setPagination(pageData.pagination);
             setHasMore(pageData.pagination.page < pageData.pagination.pages);
             loadedPagesRef.current.add(pageData.pagination.page);
-            prefetchTradePage(pageData.pagination.page + 1, pageData.pagination.limit);
+            if (prefetchTradePageRef.current) {
+                prefetchTradePageRef.current(pageData.pagination.page + 1, pageData.pagination.limit);
+            }
             return;
         }
 
         await loadTradePage(nextPage, pagination.limit);
-    };
+    }, [isAuthenticated, pagination.page, pagination.limit, hasMore, loadTradePage]);
 
     const fetchTradeById = async (id) => {
         const query = `query TradeById($id: ID!) {\n            trade(id: $id) {\n                id\n                asset\n                entry\n                exit\n                pnl\n                pnlPercent\n                status\n                direction\n                startDate\n                endDate\n                pips\n                review\n                duration\n                noteCount\n                notes {\n                    id\n                    tradeId\n                    content\n                    createdAt\n                    updatedAt\n                }\n            }\n        }`;
@@ -507,64 +641,23 @@ export function TradeProvider({ children }) {
     };
 
     const connectWebSocket = () => {
-        if (typeof window === 'undefined' || typeof WebSocket === 'undefined' || import.meta.env.MODE === 'test') {
-            return;
-        }
-
-        if (wsRef.current && [WebSocket.OPEN, WebSocket.CONNECTING].includes(wsRef.current.readyState)) {
-            return;
-        }
-
-        try {
-            const socket = new WebSocket(WS_BASE);
-            wsRef.current = socket;
-
-            socket.onopen = () => {
-                setServerNotice('Live updates connected');
-            };
-
-            socket.onmessage = (event) => {
-                try {
-                    const data = JSON.parse(event.data);
-                    if (data.type === 'trades.batchAdded' && Array.isArray(data.trades)) {
-                        persistTrades((current) => mergeTrades(current, data.trades));
-                        setServerNotice(`Received ${data.trades.length} live trades`);
-                    }
-                } catch {
-                    // ignore malformed websocket payloads
-                }
-            };
-
-            socket.onclose = () => {
-                wsRef.current = null;
-                setServerNotice('Live updates disconnected');
-                if (navigator.onLine) {
-                    reconnectTimer.current = window.setTimeout(connectWebSocket, 5000);
-                }
-            };
-
-            socket.onerror = () => {
-                setServerNotice('WebSocket error encountered');
-                if (wsRef.current) {
-                    wsRef.current.close();
-                }
-            };
-        } catch {
-            setServerNotice('Failed to initialize live updates');
-        }
+        // DISABLED - WebSocket causes refresh loop
+        return;
     };
 
     const checkConnectivity = async () => {
-        if (typeof window === 'undefined' || typeof window.fetch !== 'function') return;
+        if (typeof window === 'undefined' || typeof window.fetch !== 'function') return false;
 
         try {
             const query = `query Health { health { status timestamp } }`;
             await graphqlFetch(query);
             setIsOnline(true);
             setServerNotice('Server reachable');
+            return true;
         } catch (error) {
             setIsOnline(false);
             setServerNotice('Network or server unreachable');
+            return false;
         }
     };
 
@@ -573,6 +666,7 @@ export function TradeProvider({ children }) {
             return;
         }
 
+        isMountedRef.current = true;
         persistTrades(sortTrades(loadFromStorage(STORAGE_TRADES_KEY, initialTrades)));
         persistQueue(loadFromStorage(STORAGE_QUEUE_KEY, []));
 
@@ -593,28 +687,20 @@ export function TradeProvider({ children }) {
         window.addEventListener('online', handleOnline);
         window.addEventListener('offline', handleOffline);
 
-        // Initial check
-        checkConnectivity();
-        loadInitialTradePages();
-        loadStats();
+        // DISABLED: Initial connectivity check causing state changes
+        // const initializeRemoteServices = async () => {
+        //     await checkConnectivity();
+        // };
+        // initializeRemoteServices();
 
-        // Periodic check every 30 seconds
-        const interval = setInterval(checkConnectivity, 30000);
-
-        if (navigator.onLine) {
-            setIsOnline(true);
-            processQueue();
-            refreshServerData();
-            connectWebSocket();
-        } else {
-            setIsOnline(false);
-            setServerNotice('Offline mode enabled');
-        }
+        // DISABLED: Periodic check causing refresh loop
+        // const interval = setInterval(checkConnectivity, 30000);
 
         return () => {
+            isMountedRef.current = false;
             window.removeEventListener('online', handleOnline);
             window.removeEventListener('offline', handleOffline);
-            clearInterval(interval);
+            // clearInterval(interval); // disabled
             if (reconnectTimer.current) {
                 window.clearTimeout(reconnectTimer.current);
             }
@@ -625,16 +711,44 @@ export function TradeProvider({ children }) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    // Single effect to handle auth/online state and WebSocket
     useEffect(() => {
-        if (isOnline) {
-            processQueue();
-            refreshServerData();
-            connectWebSocket();
-        } else if (wsRef.current) {
-            wsRef.current.close();
+        if (import.meta.env.MODE === 'test' || !isAuthenticated || !isOnline) {
+            if (wsRef.current) {
+                wsRef.current.close();
+            }
+            hasBootstrappedRef.current = false;
+            return;
         }
+
+        // Prevent duplicate bootstrap runs
+        if (hasBootstrappedRef.current) {
+            return;
+        }
+
+        const bootstrapRemoteServices = async () => {
+            hasBootstrappedRef.current = true;
+            await loadInitialTradePages();
+            await loadStats();
+            await loadChatMessages();
+            // WebSocket disabled - use polling instead
+        };
+
+        bootstrapRemoteServices();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isOnline]);
+    }, [isAuthenticated, isOnline]);
+
+    // Poll for trades when generator is running
+    useEffect(() => {
+        if (!generatorRunning || !isAuthenticated) return;
+
+        const interval = setInterval(() => {
+            loadTradePage(1, pagination.limit);
+        }, 3000);
+
+        return () => clearInterval(interval);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [generatorRunning, isAuthenticated]);
 
     const addTrade = async (trade) => {
         const currentTrades = tradesRef.current;
@@ -655,8 +769,11 @@ export function TradeProvider({ children }) {
             const query = `mutation CreateTrade($input: TradeInput!) { createTrade(input: $input) { id asset entry exit pnl pnlPercent status direction startDate endDate pips review duration noteCount } }`;
             const data = await graphqlFetch(query, { input: normalizeTradeForApi(trade) });
             const createdTrade = data.createTrade;
+            // Replace local trade with database trade
             persistTrades(sortTrades(tradesRef.current.map((existing) => existing.id === tempTrade.id ? createdTrade : existing)));
         } catch (error) {
+            // Remove the local trade on error to prevent duplicates
+            persistTrades(tradesRef.current.filter((t) => t.id !== tempTrade.id));
             handleOfflineCreate(tempTrade);
             setServerNotice('New trade queued due to network or GraphQL failure');
         }
@@ -726,10 +843,19 @@ export function TradeProvider({ children }) {
                 getTrade,
                 profile,
                 saveProfile,
+                currentUser,
+                login,
+                logout,
+                loadAuditOverview,
+                chatMessages,
+                chatInput,
+                setChatInput,
+                sendChatMessage,
                 isOnline,
                 syncStatus,
                 serverNotice,
-                queuedOperations: queue.length
+                queuedOperations: queue.length,
+                refreshTrades: refreshServerData
             }}
         >
             {children}

@@ -18,6 +18,16 @@ import {
     SelectValue,
 } from "./ui/select";
 
+function normalizeDateForInput(value) {
+    if (!value) return "";
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) {
+        return value;
+    }
+    const offset = parsed.getTimezoneOffset() * 60000;
+    return new Date(parsed.getTime() - offset).toISOString().slice(0, 16);
+}
+
 const TIMEFRAMES = ["15m", "1H", "4H", "1D", "1W"];
 
 export function TradeDialog({ open, onOpenChange, trade, onSave }) {
@@ -45,8 +55,8 @@ export function TradeDialog({ open, onOpenChange, trade, onSave }) {
                     asset: trade.asset,
                     entry: trade.entry.toString(),
                     exit: trade.exit.toString(),
-                    startDate: trade.startDate,
-                    endDate: trade.endDate,
+                    startDate: normalizeDateForInput(trade.startDate),
+                    endDate: normalizeDateForInput(trade.endDate),
                     pips: trade.pips?.toString() || "",
                     review: trade.review || "",
                     direction: trade.direction,
@@ -170,8 +180,8 @@ export function TradeDialog({ open, onOpenChange, trade, onSave }) {
             pnlPercent,
             status: formData.status,
             direction: formData.direction,
-            startDate: formData.startDate,
-            endDate: formData.endDate,
+            startDate: normalizeDateForInput(formData.startDate),
+            endDate: normalizeDateForInput(formData.endDate),
             pips: formData.pips ? parseFloat(formData.pips) : undefined,
             review: formData.review,
             images: images.length > 0 ? images : undefined,
