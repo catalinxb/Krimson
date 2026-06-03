@@ -264,9 +264,31 @@ async function buildGraphqlRoot(req) {
 
   return {
     health: () => ({ status: 'ok', timestamp: new Date().toISOString() }),
-    trades: wrapResolver(({ page, limit, status, direction, asset }) => tradeRoutes.getTradesPage({ page, limit, status, direction, asset, authUser: authenticatedUser }), true),
+    trades: wrapResolver(async ({ page, limit, status, direction, asset }) => {
+      try {
+        const result = await tradeRoutes.getTradesPage({ page, limit, status, direction, asset, authUser: authenticatedUser });
+        return result || { trades: [], pagination: { page: 1, limit: 10, total: 0, pages: 0 } };
+      } catch (e) {
+        console.error('trades resolver error:', e);
+        return { trades: [], pagination: { page: 1, limit: 10, total: 0, pages: 0 } };
+      }
+    }, true),
     trade: wrapResolver(({ id }) => tradeRoutes.getTradeById(parseInt(id, 10), authenticatedUser), true),
-    stats: wrapResolver(() => tradeRoutes.getFullStats(authenticatedUser), true),
+    stats: wrapResolver(async () => {
+      try {
+        const result = await tradeRoutes.getFullStats(authenticatedUser);
+        return result || {
+          totalTrades: 0, winners: 0, losers: 0, breakeven: 0,
+          winRate: 0, totalPnL: 0, avgWin: 0, avgLoss: 0, profitFactor: 0, notesCount: 0
+        };
+      } catch (e) {
+        console.error('stats resolver error:', e);
+        return {
+          totalTrades: 0, winners: 0, losers: 0, breakeven: 0,
+          winRate: 0, totalPnL: 0, avgWin: 0, avgLoss: 0, profitFactor: 0, notesCount: 0
+        };
+      }
+    }, true),
     notesByTrade: wrapResolver(({ tradeId }) => tradeRoutes.getNotesByTrade(parseInt(tradeId, 10), authenticatedUser), true),
     createTrade: wrapResolver(({ input }) => tradeRoutes.createTrade(input, authenticatedUser), true),
     updateTrade: wrapResolver(({ id, input }) => tradeRoutes.updateTrade(parseInt(id, 10), input, authenticatedUser), true),
