@@ -9,10 +9,11 @@ const initialTrades = [
 const STORAGE_TRADES_KEY = 'trade_dashboard_trades';
 const STORAGE_QUEUE_KEY = 'trade_dashboard_queue';
 const STORAGE_PROFILE_KEY = 'trade_dashboard_profile';
-const GRAPHQL_ENDPOINT = '/graphql';
-// Use backend server for WebSocket, not the Vite dev server
+const API_BASE_URL = 'https://krimson-3cnv.onrender.com';
+const GRAPHQL_ENDPOINT = `${API_BASE_URL}/graphql`;
+// Use backend server for WebSocket
 const WS_BASE = typeof window !== 'undefined'
-    ? `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.hostname}:3001/ws`
+    ? `wss://krimson-3cnv.onrender.com/ws`
     : '';
 
 const defaultProfile = {
@@ -207,9 +208,10 @@ export function TradeProvider({ children }) {
             throw new Error('Fetch is unavailable');
         }
 
+        const endpoint = GRAPHQL_ENDPOINT;
         let response;
         try {
-            response = await window.fetch(GRAPHQL_ENDPOINT, {
+            response = await window.fetch(endpoint, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -218,14 +220,14 @@ export function TradeProvider({ children }) {
                 body: JSON.stringify({ query, variables })
             });
         } catch (fetchError) {
-            throw new Error(`Unable to reach GraphQL endpoint ${GRAPHQL_ENDPOINT}: ${fetchError.message}`);
+            throw new Error(`Unable to reach GraphQL endpoint ${endpoint}: ${fetchError.message}`);
         }
 
         let payload;
         try {
             payload = await response.json();
         } catch (parseError) {
-            throw new Error(`Invalid JSON response from GraphQL endpoint ${GRAPHQL_ENDPOINT}: ${parseError.message}`);
+            throw new Error(`Invalid JSON response from GraphQL endpoint ${endpoint}: ${parseError.message}`);
         }
 
         if (!response.ok || payload.errors) {
@@ -285,7 +287,7 @@ export function TradeProvider({ children }) {
 
     const loadChatMessages = async () => {
         try {
-            const response = await window.fetch('/api/trades/chat/messages', {
+            const response = await window.fetch(`${API_BASE_URL}/api/trades/chat/messages`, {
                 headers: getAuthHeaders()
             });
             if (!response.ok) {
@@ -304,7 +306,7 @@ export function TradeProvider({ children }) {
         }
 
         try {
-            const response = await window.fetch('/api/trades/chat/messages', {
+            const response = await window.fetch(`${API_BASE_URL}/api/trades/chat/messages`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
                 body: JSON.stringify({ sender, text, room })
@@ -323,7 +325,7 @@ export function TradeProvider({ children }) {
     const startGenerator = async () => {
         try {
             console.log('Starting generator...');
-            const response = await window.fetch('/api/trades/generator/start', {
+            const response = await window.fetch(`${API_BASE_URL}/api/trades/generator/start`, {
                 method: 'POST',
                 headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
                 body: JSON.stringify({ force: true })
@@ -347,7 +349,7 @@ export function TradeProvider({ children }) {
 
     const stopGenerator = async () => {
         try {
-            const response = await window.fetch('/api/trades/generator/stop', { method: 'POST', headers: getAuthHeaders() });
+            const response = await window.fetch(`${API_BASE_URL}/api/trades/generator/stop`, { method: 'POST', headers: getAuthHeaders() });
             const payload = await response.json();
             if (!response.ok) {
                 throw new Error(payload.error || 'Failed to stop generator');
