@@ -53,9 +53,22 @@ export default defineConfig(({ mode }) => {
       allowedHosts: ['.railway.app', '.vercel.app', '.render.com', 'krimson-frontend.vercel.app']
     },
     build: {
-      // ⚡ RESTORED: Standard optimization using native core compiler options
-      minify: true,
-      target: 'esnext'
+      minify: 'terser',
+      target: 'es2015',
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            vendor: ['react', 'react-dom', 'react-router-dom'],
+            ui: ['framer-motion', 'lucide-react', 'recharts']
+          }
+        }
+      },
+      terserOptions: {
+        compress: {
+          drop_console: false,
+          drop_debugger: true
+        }
+      }
     },
     test: {
       environment: 'jsdom',
