@@ -525,10 +525,9 @@ export function TradeProvider({ children }) {
             duration: trade.duration || calculateDuration(trade.startDate, trade.endDate) || 'Pending'
         };
 
-        const currentTrades = tradesRef.current;
         const currentQueue = queueRef.current;
 
-        persistTrades(sortTrades([tradeWithTempId, ...currentTrades]));
+        // Note: trade is already added to trades list by addTrade, just queue it
         persistQueue([...currentQueue, { type: 'create', trade: tradeWithTempId }]);
         setServerNotice('Queued new trade for synchronization');
     };
