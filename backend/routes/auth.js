@@ -26,9 +26,9 @@ const registerSchema = Joi.object({
 const passwordResetSchema = Joi.object({
   tokenId: Joi.string().uuid().required(),
   token: Joi.string().hex().length(64).required(),
-  newPassword: Joi.string().min(8).pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/).required()
+  newPassword: Joi.string().min(6).required()
     .messages({
-      'string.pattern.base': 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character'
+      'string.min': 'Password must be at least 6 characters long'
     })
 });
 
@@ -624,11 +624,10 @@ router.post('/password/change', auth.requireAuth(), async (req, res) => {
       return res.status(400).json({ error: 'Current password and new password required' });
     }
 
-    // Validate new password
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/;
-    if (newPassword.length < 8 || !passwordRegex.test(newPassword)) {
+    // Validate new password - minimum 6 characters
+    if (newPassword.length < 6) {
       return res.status(400).json({
-        error: 'Password must be at least 8 characters and contain uppercase, lowercase, number, and special character'
+        error: 'Password must be at least 6 characters long'
       });
     }
 
