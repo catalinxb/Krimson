@@ -340,6 +340,120 @@ export function AuthProvider({ children }) {
         };
     }, [isAuthenticated, logout, updateActivity]);
 
+    // ==================== 2FA MANAGEMENT ====================
+    const get2FAStatus = useCallback(async () => {
+        try {
+            const response = await apiFetch('/api/auth/2fa/status');
+            return response;
+        } catch (err) {
+            console.error('2FA status error:', err);
+            return { isEnabled: false, method: null };
+        }
+    }, [apiFetch]);
+
+    const setup2FA = useCallback(async (method = 'totp') => {
+        try {
+            const API_URL = 'https://krimson-3cnv.onrender.com';
+            const response = await fetch(`${API_URL}/api/auth/2fa/setup`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...authHeaders() },
+                body: JSON.stringify({ method }),
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || '2FA setup failed');
+            return data;
+        } catch (err) {
+            console.error('2FA setup error:', err);
+            throw err;
+        }
+    }, [authHeaders]);
+
+    const verify2FA = useCallback(async (code) => {
+        try {
+            const API_URL = 'https://krimson-3cnv.onrender.com';
+            const response = await fetch(`${API_URL}/api/auth/2fa/verify`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...authHeaders() },
+                body: JSON.stringify({ code }),
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || '2FA verification failed');
+            return data;
+        } catch (err) {
+            console.error('2FA verify error:', err);
+            throw err;
+        }
+    }, [authHeaders]);
+
+    const disable2FA = useCallback(async (password) => {
+        try {
+            const API_URL = 'https://krimson-3cnv.onrender.com';
+            const response = await fetch(`${API_URL}/api/auth/2fa/disable`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...authHeaders() },
+                body: JSON.stringify({ password }),
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || '2FA disable failed');
+            return data;
+        } catch (err) {
+            console.error('2FA disable error:', err);
+            throw err;
+        }
+    }, [authHeaders]);
+
+    // ==================== PASSWORD MANAGEMENT ====================
+    const changePassword = useCallback(async (currentPassword, newPassword) => {
+        try {
+            const API_URL = 'https://krimson-3cnv.onrender.com';
+            const response = await fetch(`${API_URL}/api/auth/password/change`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...authHeaders() },
+                body: JSON.stringify({ currentPassword, newPassword }),
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || 'Password change failed');
+            return data;
+        } catch (err) {
+            console.error('Password change error:', err);
+            throw err;
+        }
+    }, [authHeaders]);
+
+    const forgotPassword = useCallback(async (email) => {
+        try {
+            const API_URL = 'https://krimson-3cnv.onrender.com';
+            const response = await fetch(`${API_URL}/api/auth/password/forgot`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email }),
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || 'Password reset request failed');
+            return data;
+        } catch (err) {
+            console.error('Forgot password error:', err);
+            throw err;
+        }
+    }, []);
+
+    const resetPassword = useCallback(async (tokenId, token, newPassword) => {
+        try {
+            const API_URL = 'https://krimson-3cnv.onrender.com';
+            const response = await fetch(`${API_URL}/api/auth/password/reset`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ tokenId, token, newPassword }),
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || 'Password reset failed');
+            return data;
+        } catch (err) {
+            console.error('Reset password error:', err);
+            throw err;
+        }
+    }, []);
+
     const value = {
         currentUser,
         isAuthenticated,
@@ -358,6 +472,15 @@ export function AuthProvider({ children }) {
         apiFetch,
         extendSession,
         clearError: () => setError(null),
+        // 2FA
+        get2FAStatus,
+        setup2FA,
+        verify2FA,
+        disable2FA,
+        // Password
+        changePassword,
+        forgotPassword,
+        resetPassword,
     };
 
     return (
