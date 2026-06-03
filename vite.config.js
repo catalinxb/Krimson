@@ -53,26 +53,8 @@ export default defineConfig(({ mode }) => {
       allowedHosts: ['.railway.app', '.vercel.app', '.render.com', 'krimson-frontend.vercel.app']
     },
     build: {
-      minify: 'terser',
-      target: 'es2015',
-      rollupOptions: {
-        output: {
-          manualChunks: (id) => {
-            if (id.includes('node_modules/react') || id.includes('node_modules/react-dom') || id.includes('node_modules/react-router')) {
-              return 'vendor';
-            }
-            if (id.includes('node_modules/framer-motion') || id.includes('node_modules/lucide-react') || id.includes('node_modules/recharts')) {
-              return 'ui';
-            }
-          }
-        }
-      },
-      terserOptions: {
-        compress: {
-          drop_console: false,
-          drop_debugger: true
-        }
-      }
+      minify: false,
+      target: 'es2015'
     },
     test: {
       environment: 'jsdom',
