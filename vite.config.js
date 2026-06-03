@@ -47,9 +47,23 @@ export default defineConfig(({ mode }) => {
         // },
       },
     },
-    // ⚡ ADDED THIS PREVIEW BLOCK FOR RAILWAY PRODUCTION HOSTING:
     preview: {
+      host: '0.0.0.0',
+      port: process.env.PORT ? parseInt(process.env.PORT, 10) : 8080,
       allowedHosts: ['.railway.app', 'frontend-production-fb90.up.railway.app']
+    },
+    build: {
+      minify: 'terser',
+      terserOptions: {
+        compress: {
+          keep_fnames: true,
+          keep_classnames: true,
+        },
+        mangle: {
+          keep_fnames: true,
+          keep_classnames: true,
+        }
+      }
     },
     test: {
       environment: 'jsdom',
