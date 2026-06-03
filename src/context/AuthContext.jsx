@@ -156,7 +156,8 @@ export function AuthProvider({ children }) {
                 loginData.twoFactorCode = twoFactorCode;
             }
 
-            const response = await fetch('/api/auth/login', {
+            const API_URL = import.meta.env.VITE_API_URL || window.location.origin;
+            const response = await fetch(`${API_URL}/api/auth/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(loginData),
@@ -207,7 +208,8 @@ export function AuthProvider({ children }) {
                 registrationData.username = username;
             }
 
-            const response = await fetch('/api/auth/register', {
+            const API_URL = import.meta.env.VITE_API_URL || window.location.origin;
+            const response = await fetch(`${API_URL}/api/auth/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(registrationData),
