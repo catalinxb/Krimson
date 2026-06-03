@@ -120,7 +120,7 @@ export function AuthProvider({ children }) {
     }, [hasRole]);
 
     const apiFetch = useCallback(async (endpoint, options = {}) => {
-        const API_URL = import.meta.env.VITE_API_URL || window.location.origin;
+        const API_URL = 'https://krimson-3cnv.onrender.com';
         const url = endpoint.startsWith('http') ? endpoint : `${API_URL}${endpoint}`;
 
         const response = await fetch(url, {
@@ -156,7 +156,7 @@ export function AuthProvider({ children }) {
                 loginData.twoFactorCode = twoFactorCode;
             }
 
-            const API_URL = import.meta.env.VITE_API_URL || window.location.origin;
+            const API_URL = 'https://krimson-3cnv.onrender.com';
             const response = await fetch(`${API_URL}/api/auth/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -208,7 +208,7 @@ export function AuthProvider({ children }) {
                 registrationData.username = username;
             }
 
-            const API_URL = import.meta.env.VITE_API_URL || window.location.origin;
+            const API_URL = 'https://krimson-3cnv.onrender.com';
             const response = await fetch(`${API_URL}/api/auth/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
