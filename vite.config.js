@@ -15,6 +15,9 @@ export default defineConfig(({ mode }) => {
   const serverUrl = env.VITE_SERVER_URL || 'http://localhost:3001'
   const wsUrl = serverUrl.replace('http', 'ws')
 
+  // Safely extract the production environment port mapped by Railway
+  const productionPort = process.env.PORT ? parseInt(process.env.PORT, 10) : 8080
+
   return {
     plugins: [
       react(),
@@ -41,19 +44,20 @@ export default defineConfig(({ mode }) => {
           changeOrigin: true,
           secure: false,
         },
-        // '/ws': {
-        //   target: wsUrl,
-        //   ws: true,
-        // },
       },
     },
     preview: {
       host: '0.0.0.0',
-      port: process.env.PORT ? parseInt(process.env.PORT, 10) : 8080,
+      port: productionPort,
+      strictPort: true,
       allowedHosts: ['.railway.app', 'frontend-production-fb90.up.railway.app']
     },
     build: {
-      minify: true,
+      minify: 'esbuild',
+      target: 'esnext'
+    },
+    esbuild: {
+      keepNames: true
     },
     test: {
       environment: 'jsdom',
