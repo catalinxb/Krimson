@@ -3,7 +3,7 @@ import { useNavigate } from "react-router";
 import { Plus, Edit2, Trash2, Eye, ArrowLeft, TrendingUp, TrendingDown, BarChart3, Settings2, MessageSquare, FileText } from "lucide-react";
 import { motion as Motion } from "framer-motion";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } from "recharts";
-import { useCookieTracker } from "../hooks/useCookieTracker";
+import { useCookieTracker } from "../hooks/UseCookieTracker";
 import {
     Table,
     TableBody,
