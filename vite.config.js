@@ -53,17 +53,7 @@ export default defineConfig(({ mode }) => {
       allowedHosts: ['.railway.app', 'frontend-production-fb90.up.railway.app']
     },
     build: {
-      minify: 'terser',
-      terserOptions: {
-        compress: {
-          keep_fnames: true,
-          keep_classnames: true,
-        },
-        mangle: {
-          keep_fnames: true,
-          keep_classnames: true,
-        }
-      }
+      minify: true,
     },
     test: {
       environment: 'jsdom',
