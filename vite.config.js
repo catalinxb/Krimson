@@ -53,11 +53,9 @@ export default defineConfig(({ mode }) => {
       allowedHosts: ['.railway.app', 'frontend-production-fb90.up.railway.app']
     },
     build: {
-      minify: 'esbuild',
+      // ⚡ RESTORED: Standard optimization using native core compiler options
+      minify: true,
       target: 'esnext'
-    },
-    esbuild: {
-      keepNames: true
     },
     test: {
       environment: 'jsdom',
