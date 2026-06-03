@@ -73,6 +73,19 @@ export function AuthProvider({ children }) {
     const warningShownRef = useRef(false);
     const intervalRef = useRef(null);
 
+    // Update last activity timestamp - DEFINED EARLY to avoid TDZ
+    const updateActivity = useCallback(() => {
+        lastActivityRef.current = Date.now();
+        if (typeof window !== 'undefined') {
+            window.localStorage.setItem(STORAGE_LAST_ACTIVITY_KEY, lastActivityRef.current.toString());
+        }
+        // Reset warning if activity resumed
+        if (warningShownRef.current) {
+            warningShownRef.current = false;
+            setSessionWarning(null);
+        }
+    }, []);
+
     const persistUser = useCallback((user) => {
         setCurrentUser(user);
         if (typeof window !== 'undefined') {
@@ -238,19 +251,6 @@ export function AuthProvider({ children }) {
             window.localStorage.setItem('krimson_logout_reason', 'inactivity');
         }
     }, [persistUser]);
-
-    // Update last activity timestamp
-    const updateActivity = useCallback(() => {
-        lastActivityRef.current = Date.now();
-        if (typeof window !== 'undefined') {
-            window.localStorage.setItem(STORAGE_LAST_ACTIVITY_KEY, lastActivityRef.current.toString());
-        }
-        // Reset warning if activity resumed
-        if (warningShownRef.current) {
-            warningShownRef.current = false;
-            setSessionWarning(null);
-        }
-    }, []);
 
     // Extend session by resetting activity
     const extendSession = useCallback(() => {
