@@ -121,9 +121,9 @@ if (USE_HTTPS) {
 const schema = buildSchema(`
   type Query {
     health: Health!
-    trades(page: Int = 1, limit: Int = 10, status: String, direction: String, asset: String): TradePage!
+    trades(page: Int = 1, limit: Int = 10, status: String, direction: String, asset: String): TradePage
     trade(id: ID!): Trade
-    stats: Stats!
+    stats: Stats
     notesByTrade(tradeId: ID!): [Note!]!
     me: User
     sessions: [Session!]!
