@@ -94,8 +94,11 @@ setInterval(() => {
 
 // Middleware
 app.use(helmet(helmetConfig));
+const allowedOrigins = process.env.ALLOWED_ORIGINS;
+const corsOrigin = allowedOrigins === '*' ? true : (allowedOrigins ? allowedOrigins.split(',') : true);
+
 app.use(cors({
-  origin: NODE_ENV === 'production' ? process.env.ALLOWED_ORIGINS?.split(',') || false : true,
+  origin: corsOrigin,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
