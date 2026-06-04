@@ -1,10 +1,14 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Send, X } from "lucide-react";
 
 export function ChatPanel({ currentUser, chatMessages, chatInput, setChatInput, sendChatMessage, onClose }) {
+  const [localMessages, setLocalMessages] = useState([]);
+  
+  // Combine server messages with local optimistic messages, show last 4
   const displayMessages = useMemo(() => {
-    return [...chatMessages].slice(-20);
-  }, [chatMessages]);
+    const combined = [...chatMessages, ...localMessages];
+    return combined.slice(-4);
+  }, [chatMessages, localMessages]);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -13,8 +17,20 @@ export function ChatPanel({ currentUser, chatMessages, chatInput, setChatInput, 
     }
     // Use displayName from profile, fallback to username, then email
     const senderName = currentUser.profile?.displayName || currentUser.username || currentUser.email;
-    await sendChatMessage(senderName, chatInput.trim());
+    const text = chatInput.trim();
+    
+    // Optimistically add message immediately for instant display
+    const optimisticMessage = {
+      id: 'temp-' + Date.now(),
+      sender: senderName,
+      text,
+      timestamp: new Date().toISOString()
+    };
+    setLocalMessages(prev => [...prev, optimisticMessage]);
     setChatInput('');
+    
+    // Send to server
+    await sendChatMessage(senderName, text);
   };
 
   return (
