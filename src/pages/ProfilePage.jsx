@@ -281,32 +281,25 @@ export function ProfilePage() {
 
           <aside className="space-y-6 p-6 bg-card/60 border border-border rounded-3xl">
             <div className="rounded-3xl bg-muted/90 p-6 border border-border">
-              <p className="text-sm uppercase tracking-[0.3em] text-foreground/40 mb-4">Current Profile</p>
-              <div className="space-y-3 text-sm text-foreground/70">
-                <div className="flex justify-between">
-                  <span>Name</span>
-                  <span className="text-foreground">{profile?.displayName || "Anon Trader"}</span>
+              <h2 className="text-xl font-semibold mb-4">What you can change here</h2>
+              <div className="space-y-4 text-sm text-foreground/70">
+                <div>
+                  <p className="font-medium text-foreground mb-1">Display Name</p>
+                  <p className="leading-relaxed">You can change your display name at any time. This name will appear in the chat and throughout the application.</p>
                 </div>
-                <div className="flex justify-between">
-                  <span>Email</span>
-                  <span className="text-foreground">{profile?.email || "Not set"}</span>
+                <div>
+                  <p className="font-medium text-foreground mb-1">Email</p>
+                  <p className="leading-relaxed">Your email address is linked to your account and <strong>cannot be changed</strong> from this page. It is used for login and password recovery.</p>
                 </div>
-                <div className="flex justify-between">
-                  <span>Pip value</span>
-                  <span className="text-foreground">${profile?.pipValue?.toFixed(2) ?? "1.00"}</span>
+                <div>
+                  <p className="font-medium text-foreground mb-1">Pip Value</p>
+                  <p className="leading-relaxed">Set your preferred pip value in USD. This will be used throughout the dashboard to calculate real Profit & Loss from your pip-based trade results. Example: If you set $10/pip and make 5 pips, your P&L will show $50.</p>
                 </div>
-                <div className="flex justify-between">
-                  <span>Theme</span>
-                  <span className="text-foreground capitalize">{theme || "Dark"}</span>
+                <div>
+                  <p className="font-medium text-foreground mb-1">Theme</p>
+                  <p className="leading-relaxed">Choose between Dark or Light mode for the entire application interface. Your preference is saved and will persist across sessions.</p>
                 </div>
               </div>
-            </div>
-
-            <div className="rounded-3xl bg-muted/90 p-6 border border-border">
-              <h2 className="text-xl font-semibold mb-3">What changes here affect</h2>
-              <p className="text-sm text-foreground/60 leading-relaxed">
-                Your configured pip value will be used throughout the dashboard to calculate real P&L from pip-based trade results. Your theme preference determines whether the site displays in light or dark mode.
-              </p>
             </div>
           </aside>
         </div>

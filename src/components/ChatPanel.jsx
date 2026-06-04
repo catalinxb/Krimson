@@ -11,7 +11,9 @@ export function ChatPanel({ currentUser, chatMessages, chatInput, setChatInput, 
     if (!chatInput.trim() || !currentUser?.email) {
       return;
     }
-    await sendChatMessage(currentUser.email, chatInput.trim());
+    // Use displayName from profile, fallback to username, then email
+    const senderName = currentUser.profile?.displayName || currentUser.username || currentUser.email;
+    await sendChatMessage(senderName, chatInput.trim());
     setChatInput('');
   };
 
