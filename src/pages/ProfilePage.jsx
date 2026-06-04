@@ -9,12 +9,12 @@ export function ProfilePage() {
   const navigate = useNavigate();
   const { profile, saveProfile } = useTrades();
   const { theme, saveTheme } = useTheme();
-  const { get2FAStatus, setup2FA, verify2FA, disable2FA, changePassword } = useAuth();
+  const { currentUser, get2FAStatus, setup2FA, verify2FA, disable2FA, changePassword } = useAuth();
   
-  // Profile form state
+  // Profile form state - use actual user data from auth (currentUser.profile.displayName), fallback to profile storage
   const [form, setForm] = useState({
-    displayName: profile?.displayName || "Anon Trader",
-    email: profile?.email || "",
+    displayName: currentUser?.profile?.displayName || currentUser?.username || profile?.displayName || "Anon Trader",
+    email: currentUser?.email || profile?.email || "",
     pipValue: profile?.pipValue ?? 1,
   });
   const [selectedTheme, setSelectedTheme] = useState(theme || "dark");
@@ -46,6 +46,17 @@ export function ProfilePage() {
   });
   const [passwordMessage, setPasswordMessage] = useState({ text: "", type: "" });
   const [isChangingPassword, setIsChangingPassword] = useState(false);
+
+  // Sync form with currentUser data when auth initializes
+  useEffect(() => {
+    if (currentUser) {
+      setForm(prev => ({
+        ...prev,
+        displayName: currentUser.profile?.displayName || currentUser.username || prev.displayName,
+        email: currentUser.email || prev.email,
+      }));
+    }
+  }, [currentUser]);
 
   // Load 2FA status on mount
   useEffect(() => {
