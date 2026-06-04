@@ -151,7 +151,7 @@ export function MasterTablePage() {
                                 className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg border transition-all text-xs sm:text-sm tracking-wide uppercase ${
                                     showCharts
                                         ? "bg-success/10 border-success/30 text-success shadow-[0_0_20px_rgba(0,255,133,0.3)]"
-                                        : "border-border text-foreground/50 hover:bg-foreground/5"
+                                        : "border-border text-foreground/70 hover:text-foreground hover:border-accent/30"
                                 }`}
                             >
                                 <BarChart3 className="w-3.5 sm:w-4 h-3.5 sm:h-4" />
@@ -159,16 +159,16 @@ export function MasterTablePage() {
                             </button>
                             <button
                                 onClick={() => navigate('/admin/logs')}
-                                className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg border border-border text-foreground/50 hover:bg-foreground/5 transition-all text-xs sm:text-sm tracking-wide uppercase"
+                                className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg border border-border text-foreground/70 hover:text-foreground hover:border-accent/30 transition-all text-xs sm:text-sm tracking-wide uppercase"
                             >
                                 <FileText className="w-3.5 sm:w-4 h-3.5 sm:h-4" />
                                 <span className="hidden sm:inline">Logs</span>
                             </button>
                             <button
-                                onClick={generatorRunning ? stopGenerator : startGenerator}
-                                className={`px-3 sm:px-4 py-2 rounded-lg border transition-all text-xs sm:text-sm tracking-wide uppercase ${generatorRunning ? 'border-destructive text-destructive hover:bg-destructive/10' : 'border-foreground/30 text-foreground/70 hover:bg-foreground/5'}`}
+                                disabled
+                                className="px-3 sm:px-4 py-2 rounded-lg border border-border text-foreground/30 cursor-not-allowed transition-all text-xs sm:text-sm tracking-wide uppercase"
                             >
-                                {generatorRunning ? 'Stop Simulation' : 'Simulate Trades'}
+                                Simulate Trades
                             </button>
                             <button
                                 onClick={() => navigate("/profile")}
