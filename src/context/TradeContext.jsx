@@ -751,6 +751,18 @@ export function TradeProvider({ children }) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [generatorRunning, isAuthenticated]);
 
+    // Poll for chat messages when authenticated (to replace WebSocket)
+    useEffect(() => {
+        if (!isAuthenticated) return;
+
+        const interval = setInterval(() => {
+            loadChatMessages();
+        }, 3000);
+
+        return () => clearInterval(interval);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isAuthenticated]);
+
     const addTrade = async (trade) => {
         const currentTrades = tradesRef.current;
         const tempTrade = {
